@@ -351,6 +351,15 @@ public class Live2DCharacterView extends FrameLayout {
         this.useTTS = use;
     }
 
+    public void showAssistant() {
+        this.setVisibility(View.VISIBLE);
+    }
+
+    public void hideAssistant() {
+        hideSpeechBubble();
+        this.setVisibility(View.GONE);
+    }
+
     public void setPitch(float pitch) {
         if (tts != null) tts.setPitch(pitch);
     }

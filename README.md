@@ -18,6 +18,7 @@ A highly portable, self-contained Android View component that allows you to inte
 - **🗣️ Integrated TTS**: Built-in Android Text-To-Speech support with gender and pitch tuning.
 - **🤌 Gesture Support**: Long-press to minimize (shrink to corner), tap to interact.
 - **🤖 Auto-Idle**: Automatically plays random motions to keep the character alive.
+- **👁️ Visibility Control**: High-level `showAssistant()` / `hideAssistant()` methods for contextual guidance.
 - **🎨 Custom Styling**: Programmatically set bubble colors and duration.
 
 ### 🚀 Quick Start
@@ -32,6 +33,10 @@ live2DView.setPitch(1.3f);
 
 // 2. Interaction
 live2DView.say("Hello! I am your AI assistant.", "TapBody", "f01");
+
+// 3. Visibility (e.g. show only in settings)
+live2DView.hideAssistant();
+live2DView.showAssistant();
 ```
 
 ---
@@ -47,6 +52,7 @@ live2DView.say("Hello! I am your AI assistant.", "TapBody", "f01");
 - **🗣️ TTS 音声合成内蔵**: Android 標準 TTS を利用した自動読み上げ。性別指定やピッチ調整も可能。
 - **🤌 ジェスチャー操作**: 長押しで画面隅に最小化、タップでリアクション。
 - **🤖 オートアイドル**: 放置中もランダムなモーションを再生し、キャラクターの生命感を演出。
+- **👁️ 表示・非表示制御**: 文脈に合わせてアシスタントを出したり消したりできる `showAssistant()` / `hideAssistant()` メソッド。
 - **🎨 柔軟なカスタマイズ**: 吹き出しの色、表示時間、モデル切り替えをすべてコードから制御。
 
 ### 🚀 クイックスタート
