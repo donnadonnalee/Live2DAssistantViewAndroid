@@ -1,0 +1,79 @@
+# Live2D Assistant View for Android 🚀
+
+[![License](https://img.shields.io/badge/license-Live2D%20Open%20Software-blue.svg)](http://live2d.com/eula/live2d-open-software-license-agreement_en.html)
+[![Platform](https://img.shields.io/badge/platform-Android-green.svg)](https://developer.android.com/)
+
+[English](#english) | [日本語](#japanese)
+
+---
+
+<a name="english"></a>
+## English
+
+A highly portable, self-contained Android View component that allows you to integrate a Live2D character as an interactive assistant in minutes.
+
+### ✨ Features
+- **📦 Zero-XML Attributes**: Configure everything via Java code. No `attrs.xml` required for porting.
+- **💬 Smart Speech Bubble**: Auto-wrapping, bottom-right anchored, and perfectly positioned relative to the character.
+- **🗣️ Integrated TTS**: Built-in Android Text-To-Speech support with gender and pitch tuning.
+- **🤌 Gesture Support**: Long-press to minimize (shrink to corner), tap to interact.
+- **🤖 Auto-Idle**: Automatically plays random motions to keep the character alive.
+- **🎨 Custom Styling**: Programmatically set bubble colors and duration.
+
+### 🚀 Quick Start
+```java
+Live2DCharacterView live2DView = findViewById(R.id.live2d_view);
+
+// 1. Setup
+live2DView.setModelPath("Hiyori");
+live2DView.setUseTTS(true);
+live2DView.setVoiceGender(Live2DCharacterView.VoiceGender.FEMALE);
+live2DView.setPitch(1.3f);
+
+// 2. Interaction
+live2DView.say("Hello! I am your AI assistant.", "TapBody", "f01");
+```
+
+---
+
+<a name="japanese"></a>
+## 日本語
+
+あらゆる Android アプリに、数分で「喋る Live2D アシスタント」を導入するための、ポータビリティを極めたカスタムビューコンポーネントです。
+
+### ✨ 主な機能
+- **📦 Java 完結型**: `attrs.xml` 等のリソースファイル不要。Javaファイルのコピーだけで動作します。
+- **💬 インテリジェント吹き出し**: 自動改行、右下固定アンカー、キャラクターに重なる最適な配置を自動計算。
+- **🗣️ TTS 音声合成内蔵**: Android 標準 TTS を利用した自動読み上げ。性別指定やピッチ調整も可能。
+- **🤌 ジェスチャー操作**: 長押しで画面隅に最小化、タップでリアクション。
+- **🤖 オートアイドル**: 放置中もランダムなモーションを再生し、キャラクターの生命感を演出。
+- **🎨 柔軟なカスタマイズ**: 吹き出しの色、表示時間、モデル切り替えをすべてコードから制御。
+
+### 🚀 クイックスタート
+```java
+Live2DCharacterView live2DView = findViewById(R.id.live2d_view);
+
+// 1. セットアップ
+live2DView.setModelPath("Hiyori");
+live2DView.setUseTTS(true);
+live2DView.setVoiceGender(Live2DCharacterView.VoiceGender.FEMALE); // 性別指定
+live2DView.setPitch(1.3f); // 声の高さ調整
+
+// 2. 喋らせる
+live2DView.say("こんにちは！私があなたのガイドです。", "TapBody", "f01");
+```
+
+### 📦 移植手順 (Porting Guide)
+詳細は [Live2DCharacterView.java](app/src/main/java/jp/ds_soft/live2d/Live2DCharacterView.java) のヘッダーコメントを参照してください。
+
+1. **ファイルのコピー**: `Live2DCharacterView.java` と `lapp`, `framework` パッケージをコピー。
+2. **SDKの追加**: `Live2DCubismCore.aar` を `libs` に配置し、Gradle でリンク。
+3. **アセットの配置**: `assets/Shaders` とモデルフォルダを配置。
+4. **ライフサイクル設定**: Activity の `onResume`/`onPause` で View の同名メソッドを呼び出し。
+
+---
+
+## 📜 License
+This project includes the Live2D Cubism SDK. 
+The SDK code and binaries are provided under the **Live2D Open Software License**.
+Please refer to the [Live2D Official Site](http://www.live2d.com/) for licensing details.
