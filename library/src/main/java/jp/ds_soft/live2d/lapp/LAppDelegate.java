@@ -75,6 +75,7 @@ public class LAppDelegate {
         this.windowWidth = width;
         this.windowHeight = height;
         if (view != null) {
+            view.onSurfaceChanged(width, height);
             view.initialize();
             view.initializeSprite();
         }
@@ -97,6 +98,9 @@ public class LAppDelegate {
 
     public void deactivateApp() {}
     public void onPause() {}
+    public void onResume() {
+        LAppPal.resetTime();
+    }
     public void onStop() {}
     public void onDestroy() {
         LAppLive2DManager.releaseInstance();

@@ -37,6 +37,10 @@ dependencies {
     
     // Live2D Core (AAR wrapper module)
     implementation(project(":cubism-sdk"))
+
+    // Markdown
+    implementation(libs.markwon.core)
+    implementation(libs.markwon.html)
 }
 
 // JitPack用の公開設定

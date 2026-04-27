@@ -23,8 +23,15 @@ public class LAppPal {
 
     public static void updateTime() {
         s_currentFrame = getSystemNanoTime();
+        if (_lastNanoTime == 0) {
+            _lastNanoTime = s_currentFrame;
+        }
         _deltaNanoTime = s_currentFrame - _lastNanoTime;
         _lastNanoTime = s_currentFrame;
+    }
+
+    public static void resetTime() {
+        _lastNanoTime = 0;
     }
 
     public static byte[] loadFileAsBytes(final String path) {

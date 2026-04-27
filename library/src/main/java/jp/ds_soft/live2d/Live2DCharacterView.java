@@ -29,8 +29,17 @@
 package jp.ds_soft.live2d;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.opengl.GLSurfaceView;
@@ -45,7 +54,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.PopupWindow;
+import android.widget.ScrollView;
 import android.widget.TextView;
+import io.noties.markwon.Markwon;
+import io.noties.markwon.core.CorePlugin;
+import io.noties.markwon.html.HtmlPlugin;
 
 import java.util.Locale;
 
@@ -62,6 +75,7 @@ public class Live2DCharacterView extends FrameLayout {
     private GLSurfaceView glSurfaceView;
     private GLRenderer renderer;
     private LAppView view;
+    private Markwon markwon;
 
     private PopupWindow popupWindow;
     private TextView speechText;
@@ -129,6 +143,7 @@ public class Live2DCharacterView extends FrameLayout {
         glSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         glSurfaceView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
         glSurfaceView.setZOrderOnTop(true);
+        glSurfaceView.setPreserveEGLContextOnPause(true);
 
         renderer = new GLRenderer();
         renderer.setModelName(modelPathAttr); // レンダラーに初期モデル名を渡す
@@ -140,7 +155,13 @@ public class Live2DCharacterView extends FrameLayout {
         view = new LAppView();
         LAppDelegate.getInstance().setView(view);
 
-        // 3. UIの組み立て
+        // 3. Markdown初期化 (Core + HTMLプラグイン)
+        markwon = Markwon.builder(context)
+                .usePlugin(CorePlugin.create())
+                .usePlugin(HtmlPlugin.create())
+                .build();
+
+        // 4. UIの組み立て
         addView(glSurfaceView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
         // 4. 吹き出しUIの準備
@@ -198,23 +219,55 @@ public class Live2DCharacterView extends FrameLayout {
 
     private void setupSpeechBubble(Context context) {
         bubbleView = new FrameLayout(context);
-        int padding = 16;
-        bubbleView.setPadding(padding, padding, padding, padding);
+        // 影と尻尾の分、余白を広く取る (上下左右に影の逃げ道を作る)
+        int p = 30;
+        bubbleView.setPadding(p, p, p, p + 40);
 
-        // 背景をプログラムで生成 (指定された色、黒枠、角丸)
-        GradientDrawable shape = new GradientDrawable();
-        shape.setShape(GradientDrawable.RECTANGLE);
-        shape.setColor(bubbleColorAttr);
-        shape.setCornerRadius(24f);
-        shape.setStroke(4, Color.BLACK);
-        bubbleView.setBackground(shape);
+        // カスタム描画の吹き出し背景を設定
+        bubbleView.setBackground(new BubbleDrawable(bubbleColorAttr));
+
+        // 長文対応のためのScrollView
+        ScrollView scrollView = new ScrollView(context);
+        scrollView.setLayoutParams(new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
 
         speechText = new TextView(context);
         speechText.setTextColor(Color.BLACK);
         speechText.setTextSize(16f);
-        // 吹き出しが広がりすぎないように制限
-        speechText.setMaxWidth((int)(context.getResources().getDisplayMetrics().widthPixels * 0.7));
-        bubbleView.addView(speechText);
+        // テキスト自体は左寄せ
+        speechText.setGravity(Gravity.START);
+        
+        scrollView.addView(speechText);
+        
+        // 吹き出しの幅を画面一杯に設定 (100%)
+        int bubbleWidthPx = context.getResources().getDisplayMetrics().widthPixels;
+        
+        FrameLayout.LayoutParams scrollParams = new FrameLayout.LayoutParams(
+                bubbleWidthPx,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        scrollView.setLayoutParams(scrollParams);
+        
+        // タップとスクロールを判別するためのジェスチャー検出
+        GestureDetector bubbleGestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onSingleTapConfirmed(MotionEvent e) {
+                hideSpeechBubble();
+                return true;
+            }
+        });
+        
+        scrollView.setOnTouchListener((v, event) -> {
+            bubbleGestureDetector.onTouchEvent(event);
+            return false; // ScrollViewの本来の挙動(スクロール)を妨げない
+        });
+
+        bubbleView.addView(scrollView);
+
+        // 背景部分のタップでも閉じるように設定
+        bubbleView.setOnClickListener(v -> hideSpeechBubble());
 
         popupWindow = new PopupWindow(bubbleView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
@@ -225,27 +278,102 @@ public class Live2DCharacterView extends FrameLayout {
      * キャラクターに喋らせる (全引数指定)
      */
     public void say(String text, String motionGroup, String expressionId, int durationMillis) {
+        String displayText = text;
+        int targetColor = Color.BLACK;
+        boolean hasCustomColor = false;
+
+        // カラーコードの検知 (#RRGGBB 形式)
+        if (text.length() >= 8 && text.startsWith("#") && text.substring(1, 7).matches("[0-9a-fA-F]{6}") && Character.isWhitespace(text.charAt(7))) {
+            try {
+                targetColor = Color.parseColor(text.substring(0, 7));
+                displayText = text.substring(8).trim();
+                hasCustomColor = true;
+            } catch (Exception e) {
+                targetColor = Color.BLACK;
+            }
+        }
+
         if (speechText != null) {
-            speechText.setText(text);
+            if (markwon != null) {
+                // 1. タグを一時的なマーカーに置き換える (Markwonによる除去を防ぐため)
+                String processed = displayText.replaceAll("<font color=['\"](#?[a-zA-Z0-9]+)['\"]>", "\uE000$1\uE001")
+                                             .replaceAll("</font>", "\uE002");
+
+                // 2. Markwonでマークダウンを解析 (render + parse)
+                Spannable rendered = (Spannable) markwon.render(markwon.parse(processed));
+                SpannableStringBuilder builder = new SpannableStringBuilder(rendered);
+                
+                // 3. マーカーをスキャンして着色
+                // \uE000(color)\uE001(content)\uE002
+                while (true) {
+                    String current = builder.toString();
+                    int startMarker = current.indexOf('\uE000');
+                    if (startMarker == -1) break;
+                    
+                    int midMarker = current.indexOf('\uE001', startMarker);
+                    int endMarker = current.indexOf('\uE002', midMarker);
+                    if (midMarker == -1 || endMarker == -1) break;
+                    
+                    String colorStr = current.substring(startMarker + 1, midMarker);
+                    try {
+                        int color = Color.parseColor(colorStr);
+                        // マーカーを取り除きながら着色
+                        // 先に中身のテキストを取り出す
+                        builder.delete(endMarker, endMarker + 1); // \uE002 除去
+                        builder.delete(startMarker, midMarker + 1); // \uE000(color)\uE001 除去
+                        
+                        int contentStart = startMarker;
+                        int contentEnd = endMarker - (midMarker - startMarker + 1);
+                        builder.setSpan(new ForegroundColorSpan(color), contentStart, contentEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    } catch (Exception e) {
+                        // 失敗した場合はマーカーだけ消す
+                        builder.delete(endMarker, endMarker + 1);
+                        builder.delete(startMarker, midMarker + 1);
+                    }
+                }
+                
+                speechText.setText(builder);
+                
+                // 音声合成用にクリーンなテキストを抽出 (タグやマーカーを除去)
+                String ttsText = builder.toString()
+                        .replace("\uE000", "")
+                        .replace("\uE001", "")
+                        .replace("\uE002", "")
+                        .replaceAll("<[^>]*>", ""); // 残ったHTMLタグを除去
+
+                if (useTTS && isTTSReady && tts != null) {
+                    tts.speak(ttsText, TextToSpeech.QUEUE_FLUSH, null, "say_" + System.currentTimeMillis());
+                }
+            } else {
+                speechText.setText(displayText);
+                if (useTTS && isTTSReady && tts != null) {
+                    tts.speak(displayText, TextToSpeech.QUEUE_FLUSH, null, "say_" + System.currentTimeMillis());
+                }
+            }
+            // 全体の色設定 (カスタムカラー指定がある場合)
+            speechText.setTextColor(targetColor);
         }
 
         if (popupWindow != null && !popupWindow.isShowing() && !isMinimized) {
             int[] location = new int[2];
             this.getLocationInWindow(location);
             
-            // 吹き出しの最大幅を制限 (画面幅の80%)
-            int maxWidth = (int)(getContext().getResources().getDisplayMetrics().widthPixels * 0.8);
-            bubbleView.measure(View.MeasureSpec.makeMeasureSpec(maxWidth, View.MeasureSpec.AT_MOST), 
+            // 吹き出しの幅を画面幅一杯に設定
+            int screenWidth = getContext().getResources().getDisplayMetrics().widthPixels;
+            int maxWidth = screenWidth;
+            bubbleView.measure(View.MeasureSpec.makeMeasureSpec(maxWidth, View.MeasureSpec.EXACTLY), 
                              View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
             
             int bubbleWidth = bubbleView.getMeasuredWidth();
             int bubbleHeight = bubbleView.getMeasuredHeight();
 
-            // 基準点: キャラクターの右下から少し内側 (-10dp程度)
-            // 吹き出しの「右下」が常にこの位置に来るように計算する
-            int x = location[0] + this.getWidth() - bubbleWidth - 10;
-            int y = location[1] + this.getHeight() - bubbleHeight - 10;
+            // 画面の左端 (x=0) から開始して横幅一杯に広げる
+            int x = 0;
+            // 基準点: キャラクタの頭の上 (ビューの上端) に吹き出しの下端が来るように配置
+            int y = location[1] - bubbleHeight - 20;
 
+            popupWindow.setWidth(screenWidth);
+            popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
             popupWindow.showAtLocation(this, Gravity.NO_GRAVITY, x, y);
             bubbleView.setAlpha(0f);
             bubbleView.animate().alpha(1f).setDuration(300).start();
@@ -259,15 +387,10 @@ public class Live2DCharacterView extends FrameLayout {
         }
 
         handler.removeCallbacksAndMessages(null);
-        handler.postDelayed(() -> {
-            bubbleView.animate().alpha(0f).setDuration(500).withEndAction(() -> {
+        if (durationMillis > 0) {
+            handler.postDelayed(() -> {
                 if (popupWindow != null) popupWindow.dismiss();
-            }).start();
-        }, durationMillis);
-
-        // 音声合成
-        if (useTTS && isTTSReady && tts != null) {
-            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "say_" + System.currentTimeMillis());
+            }, durationMillis);
         }
     }
 
@@ -285,9 +408,7 @@ public class Live2DCharacterView extends FrameLayout {
 
     public void hideSpeechBubble() {
         if (popupWindow != null && popupWindow.isShowing()) {
-            bubbleView.animate().alpha(0f).setDuration(500).withEndAction(() -> {
-                popupWindow.dismiss();
-            }).start();
+            popupWindow.dismiss();
         }
     }
 
@@ -411,6 +532,59 @@ public class Live2DCharacterView extends FrameLayout {
         }
     }
 
-    public void onResume() { if (glSurfaceView != null) glSurfaceView.onResume(); }
+    public void onResume() {
+        if (glSurfaceView != null) glSurfaceView.onResume();
+        LAppDelegate.getInstance().onResume();
+    }
     public void onPause() { if (glSurfaceView != null) glSurfaceView.onPause(); }
+
+    /**
+     * 尻尾付きの吹き出しを描画するDrawable
+     */
+    private static class BubbleDrawable extends Drawable {
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Path path = new Path();
+        private final int color;
+
+        public BubbleDrawable(int color) {
+            this.color = color;
+            paint.setColor(color);
+            paint.setStyle(Paint.Style.FILL);
+            // 影の設定 (半径, dx, dy, 色)
+            paint.setShadowLayer(15f, 6f, 6f, Color.parseColor("#44000000"));
+        }
+
+        @Override
+        public void draw(Canvas canvas) {
+            Rect bounds = getBounds();
+            float width = bounds.width();
+            float height = bounds.height();
+            float tailHeight = 30f;
+            float tailWidth = 40f;
+            float cornerRadius = 24f;
+            
+            // 尻尾の位置 (右端から80px程度の位置)
+            float tailCenterX = width - 80f;
+
+            path.reset();
+            // 角丸長方形の本体 (下端は尻尾の高さ分上げる)
+            RectF rectF = new RectF(4, 4, width - 4, height - tailHeight - 4);
+            path.addRoundRect(rectF, cornerRadius, cornerRadius, Path.Direction.CW);
+            
+            // 尻尾 (三角形) を追加
+            path.moveTo(tailCenterX - tailWidth / 2, height - tailHeight - 4);
+            path.lineTo(tailCenterX, height - 4);
+            path.lineTo(tailCenterX + tailWidth / 2, height - tailHeight - 4);
+            
+            // 塗りつぶし (影と一緒に描画)
+            canvas.drawPath(path, paint);
+        }
+
+        @Override
+        public void setAlpha(int alpha) { paint.setAlpha(alpha); }
+        @Override
+        public void setColorFilter(android.graphics.ColorFilter colorFilter) { paint.setColorFilter(colorFilter); }
+        @Override
+        public int getOpacity() { return PixelFormat.TRANSLUCENT; }
+    }
 }
