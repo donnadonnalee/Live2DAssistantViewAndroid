@@ -60,6 +60,7 @@ import io.noties.markwon.Markwon;
 import io.noties.markwon.core.CorePlugin;
 import io.noties.markwon.html.HtmlPlugin;
 
+import android.text.method.LinkMovementMethod;
 import java.util.Locale;
 
 import jp.ds_soft.live2d.lapp.GLRenderer;
@@ -250,19 +251,11 @@ public class Live2DCharacterView extends FrameLayout {
         );
         scrollView.setLayoutParams(scrollParams);
         
-        // タップとスクロールを判別するためのジェスチャー検出
-        GestureDetector bubbleGestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
-            @Override
-            public boolean onSingleTapConfirmed(MotionEvent e) {
-                hideSpeechBubble();
-                return true;
-            }
-        });
-        
-        scrollView.setOnTouchListener((v, event) -> {
-            bubbleGestureDetector.onTouchEvent(event);
-            return false; // ScrollViewの本来の挙動(スクロール)を妨げない
-        });
+        // リンクをクリック可能にするための設定
+        speechText.setMovementMethod(LinkMovementMethod.getInstance());
+        // リンク以外をタップした時に閉じるように設定
+        speechText.setOnClickListener(v -> hideSpeechBubble());
+        scrollView.setOnClickListener(v -> hideSpeechBubble());
 
         bubbleView.addView(scrollView);
 
@@ -272,6 +265,7 @@ public class Live2DCharacterView extends FrameLayout {
         popupWindow = new PopupWindow(bubbleView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         popupWindow.setOutsideTouchable(true);
+        popupWindow.setFocusable(true); // リンクをクリック可能にするために必要
     }
 
     /**
@@ -358,22 +352,37 @@ public class Live2DCharacterView extends FrameLayout {
             int[] location = new int[2];
             this.getLocationInWindow(location);
             
-            // 吹き出しの幅を画面幅一杯に設定
+            // 1. 画面上の利用可能な最大高さを計算
+            // 画面の上端(0)からキャラの頭上(location[1])までの距離
+            int screenHeight = getContext().getResources().getDisplayMetrics().heightPixels;
             int screenWidth = getContext().getResources().getDisplayMetrics().widthPixels;
-            int maxWidth = screenWidth;
-            bubbleView.measure(View.MeasureSpec.makeMeasureSpec(maxWidth, View.MeasureSpec.EXACTLY), 
-                             View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
             
-            int bubbleWidth = bubbleView.getMeasuredWidth();
+            // ステータスバー等を考慮して少し余裕を持たせた上限 (上端から50pxあける)
+            int safetyMargin = 60;
+            int headMargin = 20;
+            int maxPossibleHeight = Math.max(200, location[1] - safetyMargin - headMargin);
+
+            // 2. 吹き出しのサイズ計測
+            bubbleView.measure(View.MeasureSpec.makeMeasureSpec(screenWidth, View.MeasureSpec.EXACTLY), 
+                             View.MeasureSpec.makeMeasureSpec(maxPossibleHeight, View.MeasureSpec.AT_MOST));
+            
             int bubbleHeight = bubbleView.getMeasuredHeight();
-
-            // 画面の左端 (x=0) から開始して横幅一杯に広げる
+            
+            // 3. 座標の決定
             int x = 0;
-            // 基準点: キャラクタの頭の上 (ビューの上端) に吹き出しの下端が来るように配置
-            int y = location[1] - bubbleHeight - 20;
+            int y = location[1] - bubbleHeight - headMargin;
+            
+            // 画面上端を突き抜ける場合は、高さを削って y=0 に固定する
+            if (y < safetyMargin) {
+                y = safetyMargin;
+                bubbleHeight = location[1] - safetyMargin - headMargin;
+                if (bubbleHeight < 200) bubbleHeight = 200; // 最低限の高さ
+            }
 
+            // 4. PopupWindowの設定を明示的に更新
             popupWindow.setWidth(screenWidth);
-            popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+            popupWindow.setHeight(bubbleHeight); // WRAP_CONTENT ではなく計算値を指定
+            
             popupWindow.showAtLocation(this, Gravity.NO_GRAVITY, x, y);
             bubbleView.setAlpha(0f);
             bubbleView.animate().alpha(1f).setDuration(300).start();
