@@ -6,7 +6,8 @@
  * [A] おすすめの導入方法 (JitPack)
  * --------------------------------
  * build.gradle に以下を追加するだけで導入完了です：
- * implementation("com.github.donnadonnalee:Live2D-AssistantView-Android:v1.0.0")
+ * implementation("com.github.donnadonnalee:Live2D-AssistantView-Android:LATEST_VERSION")
+ * (※最新のバージョン番号は README.md を確認してください)
  * 
  * [B] 手動での移植手順 (ファイルをコピーする場合)
  * ----------------------------------------------
@@ -16,10 +17,11 @@
  * 
  * 3. 基本的な使い方
  * -----------------
- *  live2DView = findViewById(R.id.live2d_view);
- *  live2DView.setModelPath("Hiyori");
- *  live2DView.setUseTTS(true);
- *  live2DView.say("こんにちは！");
+ *  1. assets/ フォルダにモデルフォルダを配置 (例: assets/Hiyori/)
+ *  2. live2DView = findViewById(R.id.live2d_view);
+ *  3. live2DView.setModelPath("Hiyori"); // フォルダ名を指定
+ *  4. live2DView.setUseTTS(true);
+ *  5. live2DView.say("こんにちは！");
  * 
  *  // ※onResume / onPause での呼び出しを忘れずに！
  * ============================================================================

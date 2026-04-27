@@ -32,13 +32,13 @@ public class MainActivity extends AppCompatActivity {
 
         // コードから設定を適用 (attrs.xmlを使わないスタイル)
         // ひよりの場合
-        // live2DView.setModelPath("Hiyori");
-        // live2DView.setVoiceGender(Live2DCharacterView.VoiceGender.FEMALE);
-        // live2DView.setPitch(1.3f);
+         live2DView.setModelPath("Hiyori");
+         live2DView.setVoiceGender(Live2DCharacterView.VoiceGender.FEMALE);
+         live2DView.setPitch(1.3f);
         // マークの場合
-        live2DView.setModelPath("mark_free_jp");
-        live2DView.setVoiceGender(Live2DCharacterView.VoiceGender.MALE);
-        live2DView.setPitch(0.9f);
+        // live2DView.setModelPath("mark_free_jp");
+        // live2DView.setVoiceGender(Live2DCharacterView.VoiceGender.MALE);
+        // live2DView.setPitch(0.9f);
         live2DView.setBubbleColor(Color.parseColor("#E3F2FD"));
         live2DView.setAutoIdle(true);
         live2DView.setUseTTS(true); // TTSを有効化

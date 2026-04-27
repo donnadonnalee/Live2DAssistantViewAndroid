@@ -39,6 +39,32 @@ live2DView.hideAssistant();
 live2DView.showAssistant();
 ```
 
+### 📦 Installation (JitPack)
+Add it to your root `settings.gradle.kts`:
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+```
+
+Add the dependency to your app `build.gradle.kts`:
+```kotlin
+dependencies {
+    implementation("com.github.donnadonnalee:Live2D-AssistantView-Android:v1.0.2")
+}
+```
+
+### 📂 Assets Setup
+Place your Live2D model folder (the one containing `.model3.json`) into your project's `src/main/assets/` directory.
+
+Example:
+`src/main/assets/Hiyori/Hiyori.model3.json`
+
+### 🛠️ Porting Guide (Legacy)
+If you prefer manual file copying, please refer to the header comments in [Live2DCharacterView.java](library/src/main/java/jp/ds_soft/live2d/Live2DCharacterView.java).
+
 ---
 
 <a name="japanese"></a>
@@ -69,31 +95,6 @@ live2DView.setPitch(1.3f); // 声の高さ調整
 live2DView.say("こんにちは！私があなたのガイドです。", "TapBody", "f01");
 ```
 
-### 📦 Installation (JitPack)
-Add it to your root `settings.gradle.kts`:
-```kotlin
-dependencyResolutionManagement {
-    repositories {
-        maven { url = uri("https://jitpack.io") }
-    }
-}
-```
-
-Add the dependency to your app `build.gradle.kts`:
-```kotlin
-dependencies {
-    implementation("com.github.donnadonnalee:Live2D-AssistantView-Android:v1.0.2")
-}
-```
-
-### 🛠️ Porting Guide (Legacy)
-If you prefer manual file copying, please refer to the header comments in [Live2DCharacterView.java](library/src/main/java/jp/ds_soft/live2d/Live2DCharacterView.java).
-
----
-
-<a name="japanese"></a>
-## 日本語
-
 ### 📦 導入方法 (JitPack)
 ルートの `settings.gradle.kts` に以下を追加します：
 ```kotlin
@@ -110,6 +111,12 @@ dependencies {
     implementation("com.github.donnadonnalee:Live2D-AssistantView-Android:v1.0.2")
 }
 ```
+
+### 📂 アセットの準備
+あなたの Live2D モデルフォルダ（`.model3.json` が含まれるフォルダ）を、プロジェクトの `src/main/assets/` ディレクトリに配置してください。
+
+例:
+`src/main/assets/Hiyori/Hiyori.model3.json`
 
 ### 🛠️ 手動での移植ガイド
 ファイルを直接コピーして使いたい場合は、[Live2DCharacterView.java](library/src/main/java/jp/ds_soft/live2d/Live2DCharacterView.java) 内のヘッダーコメントを参照してください。
