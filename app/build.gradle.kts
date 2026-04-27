@@ -39,8 +39,8 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
 
-    // Live2D Core AAR
-    implementation(files("libs/Live2DCubismCore.aar"))
+    // 新しく作ったライブラリモジュールを読み込む
+    implementation(project(":library"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

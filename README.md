@@ -69,13 +69,50 @@ live2DView.setPitch(1.3f); // 声の高さ調整
 live2DView.say("こんにちは！私があなたのガイドです。", "TapBody", "f01");
 ```
 
-### 📦 移植手順 (Porting Guide)
-詳細は [Live2DCharacterView.java](app/src/main/java/jp/ds_soft/live2d/Live2DCharacterView.java) のヘッダーコメントを参照してください。
+### 📦 Installation (JitPack)
+Add it to your root `settings.gradle.kts`:
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+```
 
-1. **ファイルのコピー**: `Live2DCharacterView.java` と `lapp`, `framework` パッケージをコピー。
-2. **SDKの追加**: `Live2DCubismCore.aar` を `libs` に配置し、Gradle でリンク。
-3. **アセットの配置**: `assets/Shaders` とモデルフォルダを配置。
-4. **ライフサイクル設定**: Activity の `onResume`/`onPause` で View の同名メソッドを呼び出し。
+Add the dependency to your app `build.gradle.kts`:
+```kotlin
+dependencies {
+    implementation("com.github.donnadonnalee:Live2D-AssistantView-Android:v1.0.0")
+}
+```
+
+### 🛠️ Porting Guide (Legacy)
+If you prefer manual file copying, please refer to the header comments in [Live2DCharacterView.java](library/src/main/java/jp/ds_soft/live2d/Live2DCharacterView.java).
+
+---
+
+<a name="japanese"></a>
+## 日本語
+
+### 📦 導入方法 (JitPack)
+ルートの `settings.gradle.kts` に以下を追加します：
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+```
+
+アプリの `build.gradle.kts` に依存関係を追加します：
+```kotlin
+dependencies {
+    implementation("com.github.donnadonnalee:Live2D-AssistantView-Android:v1.0.0")
+}
+```
+
+### 🛠️ 手動での移植ガイド
+ファイルを直接コピーして使いたい場合は、[Live2DCharacterView.java](library/src/main/java/jp/ds_soft/live2d/Live2DCharacterView.java) 内のヘッダーコメントを参照してください。
 
 ---
 

@@ -1,39 +1,27 @@
 /*
  * ============================================================================
- * 🚀 Live2D パーツ移植チェックリスト (AI Agent UI 用) - rev3
+ * 🚀 Live2D AssistantView for Android - rev4 (JitPack Ready)
  * ============================================================================
- *
- * 1. ファイルのコピー (新しいプロジェクトの対応するフォルダへ)
- * -----------------------------------------------------------
- * [Javaコード]
- *  - Live2DCharacterView.java (このファイル)
- *  - jp.ds_soft.live2d.lapp パッケージ
- *  - com.live2d.sdk.cubism.framework パッケージ (SDK基盤)
- *
- * [SDK本体]
- *  - libs/Live2DCubismCore.aar (build.gradle の dependencies に追加)
- *
- * [アセット (Assets)]
- *  - assets/モデル名 (例: Hiyori, mark_free_jp)
- *  - assets/Shaders (エンジン初期化に必須)
- *
- * 2. コードの修正
- * ---------------
- *  - 各Javaファイルの `package` 行を、新しいプロジェクトに合わせて一括置換。
- *
- * 3. 使い方 (MainActivityなど)
- * ----------------------------
+ * 
+ * [A] おすすめの導入方法 (JitPack)
+ * --------------------------------
+ * build.gradle に以下を追加するだけで導入完了です：
+ * implementation("com.github.donnadonnalee:Live2D-AssistantView-Android:v1.0.0")
+ * 
+ * [B] 手動での移植手順 (ファイルをコピーする場合)
+ * ----------------------------------------------
+ * 1. Live2DCharacterView.java (このファイル) をコピー
+ * 2. jp.ds_soft.live2d.lapp / com.live2d.sdk.cubism.framework パッケージをコピー
+ * 3. assets/Shaders と libs/Live2DCubismCore.aar を配置
+ * 
+ * 3. 基本的な使い方
+ * -----------------
  *  live2DView = findViewById(R.id.live2d_view);
- *
- *  // 初期設定
- *  live2DView.setModelPath("モデルフォルダ名");
+ *  live2DView.setModelPath("Hiyori");
  *  live2DView.setUseTTS(true);
- *  live2DView.setVoiceGender(Live2DCharacterView.VoiceGender.FEMALE);
- *
- *  // 喋らせる (文字 + モーション + 表情)
  *  live2DView.say("こんにちは！");
- *
- *  // 【重要】onResume() と onPause() で live2DView の同名メソッドを必ず呼ぶこと！
+ * 
+ *  // ※onResume / onPause での呼び出しを忘れずに！
  * ============================================================================
  */
 package jp.ds_soft.live2d;

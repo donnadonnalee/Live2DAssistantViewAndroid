@@ -21,4 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "Live2D-AssistantView-Android"
 include(":app")
+include(":library")
  
