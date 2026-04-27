@@ -35,8 +35,8 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
     
-    // Live2D Core AAR (libraryモジュール内のlibsに移動予定)
-    implementation(files("libs/Live2DCubismCore.aar"))
+    // Live2D Core (AAR wrapper module)
+    implementation(project(":cubism-sdk"))
 }
 
 // JitPack用の公開設定
