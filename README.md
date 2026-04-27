@@ -82,7 +82,7 @@ dependencyResolutionManagement {
 Add the dependency to your app `build.gradle.kts`:
 ```kotlin
 dependencies {
-    implementation("com.github.donnadonnalee:Live2D-AssistantView-Android:v1.0.0")
+    implementation("com.github.donnadonnalee:Live2D-AssistantView-Android:v1.0.2")
 }
 ```
 
