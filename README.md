@@ -73,7 +73,17 @@ live2DView.say("こんにちは！私があなたのガイドです。", "TapBod
 
 ---
 
-## 📜 License
-This project includes the Live2D Cubism SDK. 
+## 📜 License & Attributions
+### Live2D Cubism SDK
+This project utilizes the Live2D Cubism SDK.
 The SDK code and binaries are provided under the **Live2D Open Software License**.
-Please refer to the [Live2D Official Site](http://www.live2d.com/) for licensing details.
+Copyright (c) Live2D Inc. See [Live2D Official Site](http://www.live2d.com/) for more details.
+
+### Sample Models
+The sample models included in this repository (**Hiyori**, **Mark**) are the property of **Live2D Inc.** and are provided under the **Sample Data License** for demonstration and educational purposes.
+- **Hiyori**: Copyright (c) Live2D Inc.
+- **Mark**: Copyright (c) Live2D Inc.
+
+---
+### ⚠️ Disclaimer
+This repository is an unofficial community project and is not affiliated with or endorsed by Live2D Inc.
